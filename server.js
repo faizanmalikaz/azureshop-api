@@ -16,10 +16,23 @@ app.get("/", (req, res) => {
     res.send("AzureShop API Running");
 });
 
-app.get("/api", (req, res) => {
-    res.json({
-        sqlConnection: process.env.SQL_CONNECTION_STRING || "NOT FOUND"
-    });
+app.get("/api", async (req, res) => {
+    try {
+        await sql.connect(process.env.SQL_CONNECTION_STRING);
+
+        const result = await sql.query("SELECT GETDATE() AS CurrentTime");
+
+        res.json({
+            status: "Connected",
+            databaseTime: result.recordset[0].CurrentTime
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            status: "Failed",
+            error: err.message
+        });
+    }
 });
 
 app.listen(port, () => {
